@@ -1,7 +1,7 @@
 //Preprocessor directive to ensure that the contents of the header file are only included once 
 //Defines the JLOGGER macro, which prevents the file from being included multiple times
-#ifndef JLOGGER
-#define JLOGGER
+#ifndef __JLOGGER__
+#define __JLOGGER__
 
 //Standard C++ Libraries
 #include <atomic>
