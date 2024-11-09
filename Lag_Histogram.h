@@ -1,4 +1,5 @@
-//Header guards to prevent multiple inclusion of the header file
+//Preprocessor directive to ensure that the contents of the header file are only included once 
+//Defines the LAGHISTOGRAM macro, which prevents the file from being included multiple times
 #ifndef __LAGHISTOGRAM__
 #define __LAGHISTOGRAM__
 

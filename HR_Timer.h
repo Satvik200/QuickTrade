@@ -10,7 +10,7 @@
 //Include defined header file
 #include "Utilities.h"
 
-namespace OrderBook {
+namespace QuickTrade {
     
     class HRTimer {
         private:
