@@ -5,14 +5,18 @@
 
 //Standard C++ Libraries
 #include <stdint.h>
+#include <cmath>
 
-//NEED TO INSTALL BOOST FOR THIS
+#include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/qi_real.hpp>
 
 //Include defined header file
 #include "FH_Error_Tracker.h"
 #include "Utilities.h"
+
+// Define MESSAGELENMAX
+#define MESSAGELENMAX 1024
 
 namespace QuickTrade {
     //Enum for different parsing status results
@@ -77,7 +81,7 @@ namespace QuickTrade {
             return ePS_CorruptMessage;
         } else if (tk_msg[0] == '-') {
             return ePS_GenericBadValue;
-        } else if (!qi::parse(tk_msg, &tk_msg[strlen(tk_msg)], uint_, dest)) {
+        } else if (!boost::spirit::qi::parse(tk_msg, &tk_msg[strlen(tk_msg)], boost::spirit::qi::uint_, dest)) {
             return ePS_GenericBadValue;
         }
         return ePS_Good;
@@ -90,7 +94,7 @@ namespace QuickTrade {
             return ePS_CorruptMessage;
         } else if (tk_msg[0] == '-') {
             return ePS_GenericBadValue;
-        } else if (!qi::parse(tk_msg, &tk_msg[strlen(tk_msg)], double_, dest)) {
+        } else if (!boost::spirit::qi::parse(tk_msg, &tk_msg[strlen(tk_msg)], boost::spirit::qi::double_, dest)) {
             return ePS_GenericBadValue;
         }
         return ePS_Good;
@@ -177,7 +181,7 @@ namespace QuickTrade {
         }
 
         // Bail if not 0-2 decimals of precision
-        if ((double)(price * 100) - static_cast<unsigned long long>(price * 100) != 0) {
+        if (std::fmod(price * 100, 1) != 0) {
             return failOrderParse(ole, ePS_BadPrice);
         }
         ole.order_price_ = static_cast<unsigned long long>(price * 100);
@@ -223,7 +227,7 @@ namespace QuickTrade {
         }
 
         // Bail if not 0-2 decimals of precision
-        if ((double)(price * 100) - static_cast<unsigned long long>(price * 100) != 0) {
+        if (std::fmod(price * 100, 1) != 0) {
             return failTradeParse(tm, ePS_BadPrice);
         }
 
