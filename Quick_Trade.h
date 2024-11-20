@@ -20,24 +20,17 @@ namespace QuickTrade {
     template<typename ORDERIDTYPE, typename ORDERTYPE>
     //Class Definition
     class QuickTrade {
-        private:
-            Logger logger_;                             //Logger instance for logging msgs
-            OrderListMap buy_book_map_;                 //Map of buy orders sorted by price
-            OrderListMap sell_book_map_;                //Map of sell orders sorted by price
-            OrderHash orders_;                          // Hash map of all active orders by ID
-            unsigned long long recent_trade_price_;     //Most recent trade price
-            uint32_t recent_trade_qty_;                 //Most recent trade quantity
 
         public: 
             //Constructor Definition
-            OrderBook()
+            QuickTrade()
             : logger_()
             , recent_trade_price_(0)
             , recent_trade_qty_(0)
             {}
 
             //Destructor Definition
-            ~OrderBook() {
+            ~QuickTrade() {
                 for (auto it = buy_book_map_.begin(); it != buy_book_map_.end(); ++it) {
                     it->second.clearLevel();
                 }
@@ -80,7 +73,8 @@ namespace QuickTrade {
                 double midpoint = (sell_min + buy_max) / 200.;
                 // Format the midpoint value to 2 decimal places
                 char buffer[20];
-                sprintf(buffer, "%.2f\n", midpoint);
+                snprintf(buffer, sizeof(buffer), "%.2f\n", midpoint);
+
                 // Log the formatted midpoint value
                 logger_.print(buffer);
             }
@@ -96,9 +90,9 @@ namespace QuickTrade {
                 for (auto it = sell_book_map_.rbegin(); it != sell_book_map_.rend(); ++it) {
                     if (it->second.getQuantity() != 0) {
                         if (index + 100 > max_buffer) growBuffer(buffer, max_buffer); //Expand buffer if needed
-                        index += sprintf(&buffer[index], "%.2f ", it->first / 100.);
+                        index += snprintf(&buffer[index], max_buffer - index, "%.2f ", it->first / 100.);
                         it->second.printLevel('S', buffer, index, max_buffer);
-                        index += sprintf(&buffer[index], "\n");
+                        index += snprintf(&buffer[index], max_buffer - index, "\n");
                     }
                 }
 
@@ -107,13 +101,13 @@ namespace QuickTrade {
                 for (auto it = buy_book_map_.rbegin(); it != buy_book_map_.rend(); ++it) {
                     if (it->second.getQuantity() != 0) {
                         if (index + 100 > max_buffer) growBuffer(buffer, max_buffer);
-                        index += sprintf(&buffer[index], "%.2f ", it->first / 100.);
+                        index += snprintf(&buffer[index], max_buffer - index, "%.2f ", it->first / 100.);
                         it->second.printLevel('B', buffer, index, max_buffer);
-                        index += sprintf(&buffer[index], "\n");
+                        index += snprintf(&buffer[index], max_buffer - index, "\n");
                     }
                 }
 
-                index += sprintf(&buffer[index], "\n");
+                index += snprintf(&buffer[index], max_buffer - index, "\n");
 
                 //Log the order book state and free the buffer
                 logger_.print(buffer);
@@ -149,6 +143,14 @@ namespace QuickTrade {
                 ret.first->second.addNode(ole);
                 orders_[ole->order_id_] = ole; //Pointer to the new order
             }
+
+        private:
+            Logger logger_;                             //Logger instance for logging msgs
+            OrderListMap buy_book_map_;                 //Map of buy orders sorted by price
+            OrderListMap sell_book_map_;                //Map of sell orders sorted by price
+            OrderHash orders_;                          // Hash map of all active orders by ID
+            unsigned long long recent_trade_price_;     //Most recent trade price
+            uint32_t recent_trade_qty_;                 //Most recent trade quantity
     };
 }
 

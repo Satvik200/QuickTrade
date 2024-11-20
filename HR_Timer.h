@@ -16,10 +16,19 @@ namespace QuickTrade {
         private:
             //Function to read CPU timestamp counter
             //Uses inline assembly with rdtsc instruction
-            inline int64_t RDTSC() {
-                static uint32_t hi, lo;                                 //Reads 64-bit timestamp into two 32-bit registers
-                __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));    //asm volatile ensures the compiler doesn't optimize away/reorder this operation
-                return ( (uint64_t)lo) | (((uint64_t)hi) << 32);        //Combine them into single 64-bit value
+            inline uint64_t RDTSC() {
+                #if defined(__i386__) || defined(__x86_64__)
+                    uint32_t lo, hi;                                        //Reads 64-bit timestamp into two 32-bit registers
+                    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));    //asm volatile ensures the compiler doesn't optimize away/reorder this operation
+                    return ((uint64_t)hi << 32) | lo;
+                #elif defined(__aarch64__)  // ARM 64-bit
+                    uint64_t virtual_timer_value;
+                    asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
+                    return virtual_timer_value;
+                #else
+                    // Fallback: Portable timing method
+                    return std::chrono::high_resolution_clock::now().time_since_epoch().count();
+                #endif
             }
 
             uint64_t start_;    //Stores start timestamp

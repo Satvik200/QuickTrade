@@ -96,7 +96,7 @@ struct OrderLevelEntry {
 
     //Debug function to print order details
     void printSelf() {
-        DB("[ORDER] ID: %u.  QTY: %u.  SIDE: %d.  NEXT: %lu. PREV: %lu\n",
+        DB("[ORDER] ID: %u.  QTY: %u.  SIDE: %d.  NEXT: %llu. PREV: %llu\n",
             order_id_,
             order_qty_,
             order_side_,

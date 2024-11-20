@@ -27,7 +27,7 @@ namespace QuickTrade {
     //Class Definition
     class FeedHandler {
         private:
-            OrderBook<ORDERIDTYPE, ORDERTYPE> order_book_;
+            QuickTrade<ORDERIDTYPE, ORDERTYPE> order_book_;
             MessageParser parser_;
 
             #ifdef PROFILE

@@ -9,12 +9,14 @@ else
 	STDCPP=
 endif
 
+BOOST_DIR = ./boost_1_86_0
+
 #Include Directories
-INC = $(BOOST_ROOT)/
+INC = $(BOOST_DIR)/
 INC_PARAMS=$(foreach d, $(INC), -I$d)
 
 #Library Directories
-LIB_DIRS = $(BOOST_ROOT)/stage/lib/
+LIB_DIRS = $(BOOST_DIR)/libs
 
 #List the source files
 SOURCES = FH_Error_Tracker.cpp
@@ -23,7 +25,8 @@ SOURCES = FH_Error_Tracker.cpp
 LIBS = -lm
 
 #Removing warnings on unused typedefs to quiet down boost
-COMMON = -std=c++11 -Wall -Wno-unused-local-typedefs $(STDCPP) -L$(LIB_DIRS) $(LIBS) $(INC_PARAMS) -pthread -Wl,--no-as-needed
+COMMON = -std=c++11 -Wall -Wno-unused-local-typedefs $(STDCPP) -L$(LIB_DIRS) $(LIBS) $(INC_PARAMS) -pthread
+
 
 #Default target, runs the release target to build the optimized release version
 all:
@@ -39,7 +42,7 @@ release:
 
 #Build a test version of the program
 test:
-	$(CC) -g -DDEBUG $(COMMON) $(SOURCES) test.cpp -o UtilityTester
+	$(CC) -g -DDEBUG $(COMMON) $(SOURCES) test.cpp -I$(BOOST_DIR) -o UtilityTester
 
 #Build a performance test version with optimizations and debugging enabled
 perftest:

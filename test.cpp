@@ -130,10 +130,10 @@ bool testLogger() {
     HRTimer timer;
     LagHistogram lh = LagHistogram("testLogger()");
     Logger l;
-    for (uint32_t i = 0; i < 10000; ++i) {
+    for (uint32_t i = 0; i < 1000; ++i) {
         timer.start();
         char msg[50];
-        sprintf(msg, "Testing %d\n", i);
+        snprintf(msg, sizeof(msg), "Testing %d\n", i);
         l.print(msg);
         lh.add(timer.stop());
     }
@@ -169,7 +169,14 @@ int main(int argc, char** argv) {
         std::cout << "--------------------------------------" << std::endl;
         std::cout << "Please select from the following tests: " << std::endl;
         std::cout << "A: Run All Tests" << std::endl;
+        for (uint32_t i = 0; i < test_functions_.size(); ++i) {
+            std::cout << i << ": " << test_functions_[i].test_name_ << std::endl;
+        }
+        std::cout << "x: Exit" << std::endl;
+
+        char input[2] = { '0', '0' };
         std::cin >> input;
+        int input_int = atoi(input);
         if (input[0] == 'x' || input[0] == 'X') {
             break;
         } else if (input[0] == 'a' || input[0] == 'A') {

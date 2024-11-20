@@ -42,7 +42,7 @@ class LagHistogram {
             std::sort(samples_.begin(), samples_.end());
             uint64_t sum = 0;
 
-            fprintf(stderr, "\nPerformance results for [%s] (unit: nanoseconds)\n", title_.c_str());
+            fprintf(stderr, "\nPerformance results for [%s] (unit: milliseconds)\n", title_.c_str());
 
             //Calculate sum of all samples
             for(uint32_t i = 0; i < samples_.size(); ++i) {
@@ -51,30 +51,30 @@ class LagHistogram {
             
             //Print basic statistics
             fprintf(stderr, "   %-10s %10lu\n", "Samples:", samples_.size());
-            fprintf(stderr, "   %-10s %10lu\n", "Min:", samples_[0]);
-            fprintf(stderr, "   %-10s %10lu\n", "Max:", samples_[samples_.size() - 1]);
-            fprintf(stderr, "   %-10s %10lu\n", "Mean:", sum / samples_.size());
-            fprintf(stderr, "   %-10s %10lu\n", "Median:", samples_[samples_.size() / 2]);
+            fprintf(stderr, "   %-10s %10llu\n", "Min:", samples_[0]);
+            fprintf(stderr, "   %-10s %10llu\n", "Max:", samples_[samples_.size() - 1]);
+            fprintf(stderr, "   %-10s %10llu\n", "Mean:", sum / samples_.size());
+            fprintf(stderr, "   %-10s %10llu\n", "Median:", samples_[samples_.size() / 2]);
 
             //If samples>10, print common percentiles
             if (samples_.size() > 10) {
                 fprintf(stderr, "\n   %-20s\n", "[Percentiles]");
-                fprintf(stderr, "   %-10s %10lu\n", "10th:", samples_[(samples_.size() / 10)]);
-                fprintf(stderr, "   %-10s %10lu\n", "20th:", samples_[(samples_.size() / 10.) * 2]);
-                fprintf(stderr, "   %-10s %10lu\n", "50th:", samples_[(samples_.size() / 10.) * 5]);
-                fprintf(stderr, "   %-10s %10lu\n", "70th:", samples_[(samples_.size() / 10.) * 7]);
-                fprintf(stderr, "   %-10s %10lu\n", "90th:", samples_[(samples_.size() / 10.) * 9]);
+                fprintf(stderr, "   %-10s %10llu\n", "10th:", samples_[(samples_.size() / 10)]);
+                fprintf(stderr, "   %-10s %10llu\n", "20th:", samples_[(samples_.size() / 10.) * 2]);
+                fprintf(stderr, "   %-10s %10llu\n", "50th:", samples_[(samples_.size() / 10.) * 5]);
+                fprintf(stderr, "   %-10s %10llu\n", "70th:", samples_[(samples_.size() / 10.) * 7]);
+                fprintf(stderr, "   %-10s %10llu\n", "90th:", samples_[(samples_.size() / 10.) * 9]);
             }
 
             //If samples>100, print high percentiles
             if (samples_.size() > 100) {
-                fprintf(stderr, "   %-10s %10lu\n", "95th:", samples_[(samples_.size() / 100.) * 95]);
-                fprintf(stderr, "   %-10s %10lu\n", "99th:", samples_[(samples_.size() / 100.) * 99]);
+                fprintf(stderr, "   %-10s %10llu\n", "95th:", samples_[(samples_.size() / 100.) * 95]);
+                fprintf(stderr, "   %-10s %10llu\n", "99th:", samples_[(samples_.size() / 100.) * 99]);
             }
 
             //If samples>10000, print very high percentiles
             if (samples_.size() >= 10000) {
-                fprintf(stderr, "   %-10s %10lu\n", "99.99th:", samples_[(samples_.size() / 10000.) * 9999]);
+                fprintf(stderr, "   %-10s %10llu\n", "99.99th:", samples_[(samples_.size() / 10000.) * 9999]);
             }
         }
 };
