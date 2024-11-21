@@ -33,13 +33,13 @@ namespace QuickTrade {
         private:
             /* These functions have been marked INLINE for performance */
             //Helper functions to parse tokens into numbers
-            inline ParseStatus tokenizeAndConvertToUint(char *tk_msg, uint32_t &dest);
-            inline ParseStatus tokenizeAndConvertToDouble(char *tk_msg, double &dest);
+            ParseStatus tokenizeAndConvertToUint(char *tk_msg, uint32_t &dest);
+            ParseStatus tokenizeAndConvertToDouble(char *tk_msg, double &dest);
 
             //Functions to handle and report parsing errors
-            inline void reportStatus(ParseStatus status);
-            inline void failOrderParse(OrderLevelEntry &ole, ParseStatus status);
-            inline void failTradeParse(TradeMessage &tm, ParseStatus status);
+            void reportStatus(ParseStatus status);
+            void failOrderParse(OrderLevelEntry &ole, ParseStatus status);
+            void failTradeParse(TradeMessage &tm, ParseStatus status);
 
         public:
             //Class constructor and destructor
@@ -48,16 +48,16 @@ namespace QuickTrade {
 
             /* These functions have been marked INLINE for performance */
             //Function to get msg type from input
-            inline MessageType getMessageType(char *message);
+            MessageType getMessageType(char *message);
             //Function to parse order msgs
-            inline void parseOrder(char *tk_msg, OrderLevelEntry &ole);
+            void parseOrder(char *tk_msg, OrderLevelEntry &ole);
             //Function for trade msgs
-            inline void parseTrade(char *tk_msg, TradeMessage &tm);
+            void parseTrade(char *tk_msg, TradeMessage &tm);
     };
 
     //Identify msg type from first char
     //Validate msg length, map single chars to msg types and return unknown for invalid types
-    inline MessageType getMessageType(char *tk_msg) {
+    inline MessageType MessageParser::getMessageType(char *tk_msg) {
         uint32_t len = strlen(tk_msg);
         if (len == 0 || len > MESSAGELENMAX) {
             FHErrorTracker::instance()->corruptMessage();
@@ -75,7 +75,7 @@ namespace QuickTrade {
     }
 
     //Convert next token to unsigned int
-    inline ParseStatus tokenizeAndConvertToUint(char *tk_msg, uint32_t &dest) {
+    inline ParseStatus MessageParser::tokenizeAndConvertToUint(char *tk_msg, uint32_t &dest) {
         tk_msg = strtok(NULL, ",");
         if (tk_msg == NULL) {
             return ePS_CorruptMessage;
@@ -88,7 +88,7 @@ namespace QuickTrade {
     }
 
     //Convert next token to floating point
-    inline ParseStatus tokenizeAndConvertToDouble(char *tk_msg, double &dest) {
+    inline ParseStatus MessageParser::tokenizeAndConvertToDouble(char *tk_msg, double &dest) {
         tk_msg = strtok(NULL, ",");
         if (tk_msg == NULL) {
             return ePS_CorruptMessage;
@@ -101,7 +101,7 @@ namespace QuickTrade {
     }
 
     //Centralized error reporting
-    inline void reportStatus(ParseStatus status) {
+    inline void MessageParser::reportStatus(ParseStatus status) {
         switch (status) {
             case ePS_Good:              FHErrorTracker::instance()->goodMessage();
                                         break;
