@@ -28,14 +28,12 @@ jobs:
 
     - name: Generate orders.txt using Perl script
       run: |
-        mkdir -p "input_file"
-        perl orderGenerator.pl > "input_file/orders.txt"
+        perl orderGenerator.pl > "orders.txt"
         
     - name: Archive the build artifacts
       run: |
         mkdir -p artifacts
-        cp ./UtilityTester ./QuickTradeProcessor artifacts/
-        cp -r ./input_file artifacts/
+        cp ./UtilityTester ./QuickTradeProcessor ./orders.txt artifacts/
 
     - name: Create release
       uses: softprops/action-gh-release@v1
