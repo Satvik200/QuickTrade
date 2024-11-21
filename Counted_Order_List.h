@@ -63,11 +63,11 @@ namespace QuickTrade {
                 NODE *tail = DLList<NODE>::getTail();
                 while (tail != DLList<NODE>::getHead()) {
                     if (index + 50 > max_buffer) growBuffer(buffer, max_buffer);
-                    index += sprintf(&buffer[index], "%c %u ", tag, tail->order_qty_);
+                    index += snprintf(&buffer[index], sizeof(buffer) - index, "%c %u ", tag, tail->order_qty_);
                     tail = tail->next_;
                 }
                 if (index + 50 > max_buffer) growBuffer(buffer, max_buffer);
-                index += sprintf(&buffer[index], "%c %u ", tag, tail->order_qty_);
+                index += snprintf(&buffer[index], sizeof(buffer) - index, "%c %u ", tag, tail->order_qty_);
             }
 
             //Returns total quantity at this price level

@@ -144,6 +144,174 @@ namespace QuickTrade {
                 orders_[ole->order_id_] = ole; //Pointer to the new order
             }
 
+            void modifyOrder(ORDERTYPE* ole) {
+                checkCross();
+
+                auto ooit = orders_.find(ole->order_id_);
+                if (ooit == orders_.end()) {
+                    FHErrorTracker::instance()->invalidModify();
+                    delete ole;
+                    return;
+                }
+
+                OrderListMap &map = ooit->second->order_side_ == eS_Buy ? buy_book_map_ : sell_book_map_;
+
+                if (ole->order_price_ == ooit->second->order_price_) {
+                    // Cancel reduce, retain time priority
+                    if (ole->order_qty_ <= ooit->second->order_qty_) {
+                        typename OrderListMap::iterator pit = map.find(ooit->second->order_price_);
+                        pit->second.changeNodeQuantity(ooit->second, ole->order_qty_);
+                        delete ole;
+                    }
+                    // Cancel replace, remove and re-add at back of list
+                    else {
+                        typename OrderListMap::iterator pit = map.find(ooit->second->order_price_);
+                        pit->second.removeNode(ooit->second);
+                        delete ooit->second;
+                        orders_.erase(ooit);
+
+                        pit->second.addNode(ole);
+                        orders_[ole->order_id_] = ole;
+                    }
+                }
+                // Price change - remove from old level and insert in new
+                else {
+                    typename OrderListMap::iterator opit = map.find(ooit->second->order_price_);
+                    opit->second.removeNode(ooit->second);
+                    delete ooit->second;
+                    orders_.erase(ooit);
+
+                    if (opit->second.getQuantity() == 0) {
+                        map.erase(opit);
+                    }
+
+                    std::pair<typename OrderListMap::iterator, bool> ret;
+                    ret = map.insert(
+                    std::pair<unsigned long long, CountedOrderList<ORDERTYPE>>(ole->order_price_, CountedOrderList<ORDERTYPE>()));
+                    ret.first->second.addNode(ole);
+                    orders_[ole->order_id_] = ole;
+                }
+            }
+
+            void removeOrder(ORDERTYPE* ole) {
+                checkCross();
+
+                // Confirm cancel of existing.  Don't check fields against record on books: wasn't requested.  Trivial to do.
+                auto ooit = orders_.find(ole->order_id_);
+                if (ooit == orders_.end()) {
+                    FHErrorTracker::instance()->badCancel();
+                    delete ole;
+                    return;
+                }
+
+                OrderListMap &map = ooit->second->order_side_ == eS_Buy ? buy_book_map_ : sell_book_map_;
+
+                typename OrderListMap::iterator pit = map.find(ooit->second->order_price_);
+                if (pit == map.end()) {
+                    fprintf(stderr, "OrderBook:: CATASTROPHIC ERROR.  Cancel for order on price level (%llu) not found.  Skipping!\n", ooit->second->order_price_);
+                    delete ole;
+                    return;
+                }
+                pit->second.removeNode(ooit->second);
+                delete ooit->second;
+                orders_.erase(ooit);
+                delete ole;
+
+                if (pit->second.getQuantity() == 0) {
+                    map.erase(pit);
+                }
+            }
+
+        void handleTrade(TradeMessage &tm) {
+            // Confirm levels are active.  For buy orders, we take highest buy level and assume the trade price was due to lowest sell order.
+            if (buy_book_map_.empty() || sell_book_map_.empty()) {
+                FHErrorTracker::instance()->tradeMissingOrders();
+                return;
+            }
+
+            // Match against highest buy orders on book
+            auto bit = buy_book_map_.end();
+            --bit;
+            if (bit->first < tm.trade_price_) {
+                FHErrorTracker::instance()->tradeMissingOrders();
+                return;
+            }
+
+            //Sell order drives trade price
+            auto sit = sell_book_map_.find(tm.trade_price_);
+            if (sit == sell_book_map_.end()) {
+                FHErrorTracker::instance()->tradeMissingOrders();
+                return;
+            }
+
+            //Confirm sufficient qty for execution
+            if (bit->second.getQuantity() < tm.trade_qty_ ||
+                sit->second.getQuantity() < tm.trade_qty_) {
+                FHErrorTracker::instance()->tradeMissingOrders();
+                return;
+            }
+
+            //Buy side - remove orders as matched if trade depletes them
+            uint32_t trade_qty = tm.trade_qty_;
+            while (trade_qty > 0) {
+                ORDERTYPE *tail = bit->second.getTail();
+                if (tail->order_qty_ > trade_qty) {
+                    trade_qty = 0;
+                } else {
+                    trade_qty -= tail->order_qty_;
+                }
+
+                if (tm.trade_qty_ >= tail->order_qty_) {
+                    bit->second.removeNode(tail);
+                    auto odit = orders_.find(tail->order_id_);
+                    delete odit->second;
+                    orders_.erase(odit);
+                } else {
+                    bit->second.changeNodeQuantity(tail, tail->order_qty_ - tm.trade_qty_);
+                }
+            }
+            if (bit->second.getQuantity() == 0) {
+                buy_book_map_.erase(bit);
+            }
+
+            // Repeat for Sell side
+            trade_qty = tm.trade_qty_;
+            while (trade_qty > 0) {
+                ORDERTYPE *tail = sit->second.getTail();
+                if (tail->order_qty_ > trade_qty) {
+                    trade_qty = 0;
+                } else {
+                    trade_qty -= tail->order_qty_;
+                }
+
+                if (tm.trade_qty_ >= tail->order_qty_) {
+                    sit->second.removeNode(tail);
+                    auto odit = orders_.find(tail->order_id_);
+                    delete odit->second;
+                    orders_.erase(odit);
+                } else {
+                    sit->second.changeNodeQuantity(tail, tail->order_qty_ - tm.trade_qty_);
+                }
+            }
+            if (sit->second.getQuantity() == 0) {
+                sell_book_map_.erase(sit);
+            }
+
+            // Update recent_trade_price and recent_trade_qty and print
+            if (tm.trade_price_ != recent_trade_price_) {
+                recent_trade_price_ = tm.trade_price_;
+                recent_trade_qty_ = 0;
+            }
+            recent_trade_qty_ += tm.trade_qty_;
+
+            // Request is to print once per trade message, not once per matched trade.
+            char trade_buffer[25];
+            snprintf(trade_buffer, sizeof(trade_buffer), "%u@%.2f\n", recent_trade_qty_, recent_trade_price_ / 100.);
+            logger_.print(trade_buffer);
+
+            checkCross();
+        }
+
         private:
             Logger logger_;                             //Logger instance for logging msgs
             OrderListMap buy_book_map_;                 //Map of buy orders sorted by price
