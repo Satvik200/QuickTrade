@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'  # Trigger the workflow only for tags starting with 'v'
 
 jobs:
   release:
@@ -17,12 +17,6 @@ jobs:
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
-
-    - name: Create a new tag
-      run: |
-        TAG_NAME="v$(date +'%Y%m%d%H%M%S')"
-        git tag $TAG_NAME
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} $TAG_NAME
 
     - name: Run make test
       run: |
@@ -47,6 +41,6 @@ jobs:
       with:
         files: |
           artifacts/*
-          "input files/orders.txt"  # Include the orders.txt in the release
+          "input_file/orders.txt"  # Include the orders.txt in the release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
