@@ -1,4 +1,4 @@
-name: Build and Release C++ Project
+name: Build and Release
 
 on:
   push:
@@ -6,39 +6,47 @@ on:
       - main
 
 jobs:
-  build:
+  release:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up C++ environment
-        run: |
-          brew install make
-          brew install gcc
+    - name: Set up Git
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
 
-      - name: Build the project using Makefile
-        run: |
-          make all
+    - name: Create a new tag
+      run: |
+        TAG_NAME="v$(date +'%Y%m%d%H%M%S')"  # Example tag format: v20231121123045
+        git tag $TAG_NAME
+        git push origin $TAG_NAME
 
-      - name: Build tests using Makefile
-        run: |
-          make test
+    - name: Run make test
+      run: |
+        make test
 
-      - name: Archive the build artifacts
-        run: |
-          mkdir -p artifacts
-          # Copying UtilityTester and its associated .dSYM directory (located in the root)
-          cp UtilityTester artifacts/
-          cp -r UtilityTester.dSYM artifacts/
-          # Copying QuickTradeProcessor (also located in the root)
-          cp QuickTradeProcessor artifacts/
+    - name: Run make all
+      run: |
+        make all
 
-      - name: Create release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            artifacts/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Generate orders.txt using Perl script
+      run: |
+        mkdir -p "input_file"
+        perl orderGenerator.pl > "input_file/orders.txt"
+        
+    - name: Archive the build artifacts
+      run: |
+        mkdir -p artifacts
+        cp ./UtilityTester ./QuickTradeProcessor artifacts/  # Include the executables you want to release
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/*
+          "input files/orders.txt"  # Include the orders.txt in the release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
