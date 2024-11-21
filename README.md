@@ -44,12 +44,12 @@ To run the build of this project, execute the following commands:
 ## Performance Metrics
 ```
 Performance results for [testLogger()] (unit: nanoseconds)
-Samples:         1000
+  Samples:         1000
   Min:              816
   Max:           133762
   Mean:            1361
   Median:           898
-
+  
   [Percentiles]
   10th:             857
   20th:             857
