@@ -35,7 +35,7 @@ jobs:
       run: |
         mkdir -p artifacts
         cp ./UtilityTester ./QuickTradeProcessor artifacts/
-        cp ./input_file artifacts/
+        cp -r ./input_file artifacts/
 
     - name: Create release
       uses: softprops/action-gh-release@v1
