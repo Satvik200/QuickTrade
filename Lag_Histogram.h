@@ -42,7 +42,7 @@ class LagHistogram {
             std::sort(samples_.begin(), samples_.end());
             uint64_t sum = 0;
 
-            fprintf(stderr, "\nPerformance results for [%s] (unit: milliseconds)\n", title_.c_str());
+            fprintf(stderr, "\nPerformance results for [%s] (unit: nanoseconds)\n", title_.c_str());
 
             //Calculate sum of all samples
             for(uint32_t i = 0; i < samples_.size(); ++i) {
