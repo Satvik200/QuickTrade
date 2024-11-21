@@ -1,0 +1,44 @@
+name: Build and Release C++ Project
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Set up C++ environment
+        run: |
+          brew install make
+          brew install gcc
+
+      - name: Build the project using Makefile
+        run: |
+          make all
+
+      - name: Build tests using Makefile
+        run: |
+          make test
+
+      - name: Archive the build artifacts
+        run: |
+          mkdir -p artifacts
+          # Copying UtilityTester and its associated .dSYM directory (located in the root)
+          cp UtilityTester artifacts/
+          cp -r UtilityTester.dSYM artifacts/
+          # Copying QuickTradeProcessor (also located in the root)
+          cp QuickTradeProcessor artifacts/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
