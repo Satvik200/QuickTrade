@@ -20,9 +20,9 @@ jobs:
 
     - name: Create a new tag
       run: |
-        TAG_NAME="v$(date +'%Y%m%d%H%M%S')"  # Example tag format: v20231121123045
+        TAG_NAME="v$(date +'%Y%m%d%H%M%S')"
         git tag $TAG_NAME
-        git push origin $TAG_NAME
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} $TAG_NAME
 
     - name: Run make test
       run: |
