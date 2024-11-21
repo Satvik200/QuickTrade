@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'  # Trigger the workflow only for tags starting with 'v'
+      - 'v*'
 
 jobs:
   release:
@@ -34,13 +34,13 @@ jobs:
     - name: Archive the build artifacts
       run: |
         mkdir -p artifacts
-        cp ./UtilityTester ./QuickTradeProcessor artifacts/  # Include the executables you want to release
+        cp ./UtilityTester ./QuickTradeProcessor artifacts/
+        cp ./input_file artifacts/
 
     - name: Create release
       uses: softprops/action-gh-release@v1
       with:
         files: |
           artifacts/*
-          "input_file/orders.txt"  # Include the orders.txt in the release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
