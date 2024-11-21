@@ -8,7 +8,7 @@ This project was created as an exercise to test and implement a variety of techn
 
 - Write machine-readable series of mid-quotes
 
-- On each trade message, write total qty traded at most recent trade price
+- On each trade message, write total quantity traded at most recent trade price
 
 - Gracefully handle various garbage messages
 ## Development and Testing Environment
